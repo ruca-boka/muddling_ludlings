@@ -1,0 +1,101 @@
+//Model
+var makeModel = function(p_correct, p_hard) {return function(f) {
+    var isHard = function(game){flip(p_hard)}
+    var goal_dist = function(game){isHard(game) ? Categorical ({vs: ['a', 'b', 'c', 'd'],
+                                          ps: [0.15, 0.15, 0.35, 0.35]}) :
+                             Categorical({vs: ['a', 'b', 'c', 'd'],
+                                         ps: [0.15, 0.15, 0.35, 0.35]})}
+    var true_goal = function(game){sample(goal_dist(game))}
+    var idx = function(game){['a', 'b', 'c', 'd'].indexOf(true_goal(game))}
+    var ps = function(game){idx(game) == 0 ? [0, 1/3, 1/3, 1/3] :
+    idx(game) == 1 ? [1/3, 0, 1/3, 1/3] : 
+    idx(game) == 2 ? [1/3, 1/3, 0, 1/3]: [1/3, 1/3, 1/3, 0]}
+    var updated_dist = function(game){Categorical ({vs: ['a', 'b', 'c', 'd'], 
+                                    ps: ps(game)})}
+    var isCorrect = function(round){flip(p_correct)}
+    var observed = function(round, game) {isCorrect(round) ? true_goal(game) : 
+    sample(updated_dist(game))}
+    return f(isCorrect, observed)
+}}
+editor.put("makeModel", makeModel)
+
+// Inference and visualization code
+var makeModel = editor.get("makeModel")
+var model = makeModel(0.5, 0.25)
+print("Got here")
+
+var dist = Infer({method:"enumerate"}, model(function(isCorrect, observed){
+  condition(observed('round1', 'game1') == "c")
+  isCorrect('round1')
+}))
+viz(dist)
+
+/* ------------------------ Old work - Archived in case it's relevant in the future -------------------------- */
+
+
+/*
+var p_unhookEdge = 0.2
+var p_eachSwitch = 0.2
+var p_switchDist = 0.2
+
+editor.put("p_uE", p_unhookEdge)
+editor.put("p_eS", p_eachSwitch)
+editor.put("p_sD", p_switchDist)*/
+
+
+// Inference model
+
+// Priors about each kind of edit
+/*var p_uE = editor.get("p_uE")
+var p_eS = editor.get("p_eS")
+var p_sD = editor.get("p_sD")
+
+var p_correct = editor.get("p_correct")
+var true_goal = editor.get("true_goal")*/
+
+// As a result, the priors about each goal
+
+/*var unnormalized_probs = [((p_eS)^2)*(p_sD)^4, ((p_eS))*(p_sD)^3,
+                      (p_eS)*((p_sD)^3)*p_uE, (p_eS^2)*(p_sD^4)*(p_uE^2)]
+
+print(unnormalized_probs)
+
+var normalize = function(l){
+  var range = l.length
+  var sum = 0
+  var i = 0
+  for (var i=0; i<range; i++){
+    sum += l[i]
+  }
+  
+  /*var normalized_l = []
+  for (var i=0; i<range; i++){
+    var new_num = l[i]/sum
+    normalized_l.concat(new_num)
+  }
+return normalized_l
+  return None
+}*/
+
+//var normalized_probs = normalize(unnormalized_probs)                     
+
+//var inference_goal_dist = Categorical({vs: [[4, 3, 2, 1], [4, 2, 3, 1],
+//                                           [1, 4, 3, 2], [3, 4, 1, 2]],
+//                        ps: normalized_probs})
+
+// The observation and the inference model.
+/*var observation = [4, 3, 2, 1]
+
+var makeModel = function(f) {return function(p_correct, true_goal, inference_goal_dist) {
+    var isHard = flip(p_hard)
+    var isCorrect = flip(p_correct)
+    var observed = isCorrect ? true_goal : sample(inference_goal_dist)
+//    f(isCorrect, observed)*/
+//}}
+//editor.put("makeModel", makeModel)
+
+//var dist = Infer({method:"enumerate"}, model(function(isCorrect, obs){
+//  condition(obs == [4, 3, 2, 1])
+//  isCorrect
+//}))
+//viz(dist)
